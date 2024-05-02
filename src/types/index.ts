@@ -4,10 +4,19 @@ export interface IItem {
 	image: string;
 	title: string;
 	category: string;
-	price: number;
+	price: number | null;
 	add(): void;
 	remove(): void;
 	isInBasket(id: string): boolean;
+}
+
+export interface IProduct {
+	id: string;
+	name: string;
+	price: number | null;
+	description: string;
+	category: string;
+	image: string;
 }
 
 export type TItemInfo = Pick<IItem, 'image' | 'title' | 'category' | 'price'>;
