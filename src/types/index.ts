@@ -5,18 +5,32 @@ export interface IItem {
 	title: string;
 	category: string;
 	price: number | null;
-	add(): void;
-	remove(): void;
-	isInBasket(id: string): boolean;
+	// add(): void;
+	// remove(): void;
+	// isInBasket(id: string): boolean;
 }
 
 export interface IProduct {
 	id: string;
-	name: string;
 	price: number | null;
 	description: string;
+	title: string;
 	category: string;
 	image: string;
+}
+
+export interface IOrder {
+	items: string[];
+	payment: string;
+	address: string;
+	phone: string;
+	email: string;
+	total: number;
+}
+
+export interface IPayedOrder {
+	id: string;
+	total: number;
 }
 
 export type TItemInfo = Pick<IItem, 'image' | 'title' | 'category' | 'price'>;
@@ -24,10 +38,10 @@ export type TItemInfo = Pick<IItem, 'image' | 'title' | 'category' | 'price'>;
 export type TItemInBasketInfo = Pick<IItem, 'title' | 'price'>;
 
 export interface IItemsData {
-	items: IItem[];
+	items: IProduct[];
 	preview: string | null;
-	updateItem(item: IItem): void;
-	getItem(itemId: string): IItem;
+	// updateItem(item: IItem): void;
+	// getItem(itemId: string): IItem;
 }
 
 export interface IBasket {
@@ -37,15 +51,6 @@ export interface IBasket {
 	makeOrder(items: IItem[]): void;
 }
 
-export interface IOrder {
-	items: IItem[];
-	payment: 'online' | 'cash';
-	address: string;
-	phone: string;
-	email: string;
-	total: number;
-}
-
 export interface IOrderInfo {
 	getOrderInfo(order: IOrder): void;
 	payOrder(order: IOrder): IPayedOrder;
@@ -53,11 +58,6 @@ export interface IOrderInfo {
 	checkOrderContactsValidation(
 		data: Record<keyof TOrderContacts, string>
 	): boolean;
-}
-
-export interface IPayedOrder {
-	id: string;
-	total: number;
 }
 
 export type TOrderInfo = Pick<IOrder, 'payment' | 'address'>;
