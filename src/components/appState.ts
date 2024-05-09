@@ -1,80 +1,80 @@
-import { IItem, IItemsData, IOrder, IProduct } from '../types';
+import {
+	FormErrors,
+	IAppState,
+	IContactsForm,
+	IItem,
+	IItemsData,
+	IOrder,
+	IProduct,
+} from '../types';
 import { EventEmitter, IEvents } from './base/events';
 
-export class Item implements IProduct {
+abstract class Model<T> {
+	constructor(data: Partial<T>, protected events: IEvents) {
+		Object.assign(this, data);
+	}
+
+	emitChanges(event: string, payload?: object) {
+		this.events.emit(event, payload ?? {});
+	}
+}
+
+export type CatalogChangeEvent = {
+	catalog: Item[];
+};
+
+export class Item extends Model<IProduct> {
 	id: string;
 	description: string;
 	image: string;
 	title: string;
 	category: string;
 	price: number | null;
-	// add(): void;
-	// remove(): void;
-	// isInBasket(id: string): boolean;
 }
 
-// export class AppState implements IItemsData {
-// 	basket: string[];
-// 	items: Item[];
-// 	preview: string | null;
-// 	order: IOrder = {
-// 		payment: '',
-// 		email: '',
-// 		phone: '',
-// 		address: '',
-// 		total: 0,
-// 		items: [],
-// 	};
-
-// 	clearBasket() {
-// 		this.basket = [];
-// 	}
-
-// 	getTotal() {
-// 		return this.order.items.reduce(
-// 			(a, c) => a + this.items.find((it) => it._id === c).price,
-// 			0
-// 		);
-// 	}
-
-// 	setCatalog(items: Item[]) {
-// 		this.items = items.map((item) => new Item());
-// 		this.emit('items:changed', { items: this.items });
-// 	}
-// }
-
-export class ProductData implements IItemsData {
+export class ProductData extends Model<IAppState> {
+	basket: IProduct[];
 	items: IProduct[];
 	preview: string | null;
-	events: IEvents;
+	order: IOrder = {
+		email: '',
+		phone: '',
+		items: [],
+		payment: '',
+		address: '',
+		total: 0,
+	};
+	formErrors: FormErrors = {};
 
-	constructor(events: IEvents) {
-		this.items = [];
-		this.events = events;
+	setCatalog(items: IProduct[]) {
+		this.items = items.map((item) => new Item(item, this.events));
+		this.emitChanges('items:changed', { items: this.items });
 	}
-	setItems(items: IProduct[]) {
-		this.items = items;
-		this.events.emit('items:changed');
+
+	setPreview(item: Item) {
+		this.preview = item.id;
+		this.emitChanges('preview:changed', item);
 	}
-	getItems() {
-		return this.items;
-	}
-	getItem(itemId: string) {
-		return this.items.find((item) => item.id === itemId);
-	}
-	setPreview(itemId: string | null) {
-		if (!itemId) {
-			this.preview = null;
-			return;
-		}
-		const selectedItem = this.getItem(itemId);
-		if (selectedItem) {
-			this.preview = itemId;
-			this.events.emit('item:selected');
+
+	setContactsField(field: keyof IContactsForm, value: string) {
+		this.order[field] = value;
+
+		if (this.validateContactsForm()) {
+			this.events.emit('order:ready', this.order);
 		}
 	}
-	getPreview() {
-		return this.preview;
+
+	validateContactsForm() {
+		const errors: typeof this.formErrors = {};
+		if (!this.order.email) {
+			errors.email = 'Необходимо указать email';
+		}
+		if (!this.order.phone) {
+			errors.phone = 'Необходимо указать телефон';
+		}
+		this.formErrors = errors;
+		this.events.emit('formErrors:change', this.formErrors);
+		return Object.keys(errors).length === 0;
 	}
 }
 
@@ -88,12 +88,17 @@ export class BasketData {
 		this.total = 0;
 		this.events = events;
 	}
+
+	getItems() {
+		return this.items;
+	}
+
 	addItem(item: IProduct) {
 		this.items.push(item);
 		this.events.emit('basket:changed');
 	}
-	removeItem(itemId: string) {
-		this.items = this.items.filter((item) => item.id !== itemId);
+	removeItem(itemToRemove: IProduct) {
+		this.items = this.items.filter((item) => item.id !== itemToRemove.id);
 		this.events.emit('basket:changed');
 	}
 	clearBasket() {
@@ -106,52 +111,70 @@ export class BasketData {
 			0
 		);
 	}
-	makeOrder() {
-		const order = new Order(this.events);
-		order.setOrderInfo({
-			items: this.items.map((item) => item.id),
-			payment: '',
-			address: '',
-			phone: '',
-			email: '',
-			total: this.getTotal(),
-		});
-		this.events.emit('basket:order');
-		return order;
-	}
 }
+// 	makeOrder() {
+// 		const order = new Order(this.events);
+// 		order.setOrderInfo({
+// 			items: this.items.map((item) => item.id),
+// 			payment: '',
+// 			address: '',
+// 			phone: '',
+// 			email: '',
+// 			total: this.getTotal(),
+// 		});
+// 		this.events.emit('basket:order');
+// 		return order;
+// 	}
+// }
 
-export class Order implements IOrder {
-	items: string[];
-	payment: string;
-	address: string;
-	phone: string;
-	email: string;
-	total: number;
-	events: IEvents;
+// export class Order implements IOrder {
+// 	items: string[];
+// 	payment: string;
+// 	address: string;
+// 	phone: string;
+// 	email: string;
+// 	total: number;
+// 	events: IEvents;
+// 	formErrors: string;
 
-	constructor(events: IEvents) {
-		this.events = events;
-	}
+// 	constructor(events: IEvents) {
+// 		this.events = events;
+// 	}
 
-	getOrderInfo() {
-		return {
-			items: this.items,
-			payment: this.payment,
-			address: this.address,
-			phone: this.phone,
-			email: this.email,
-			total: this.total,
-		};
-	}
+// 	getOrderInfo() {
+// 		return {
+// 			items: this.items,
+// 			payment: this.payment,
+// 			address: this.address,
+// 			phone: this.phone,
+// 			email: this.email,
+// 			total: this.total,
+// 		};
+// 	}
 
-	setOrderInfo(orderData: IOrder) {
-		this.items = orderData.items;
-		this.payment = orderData.payment;
-		this.address = orderData.address;
-		this.phone = orderData.phone;
-		this.email = orderData.email;
-		this.total = orderData.total;
-		this.events.emit('order:changed');
-	}
-}
+// 	setOrderInfo(orderData: IOrder) {
+// 		this.items = orderData.items;
+// 		this.payment = orderData.payment;
+// 		this.address = orderData.address;
+// 		this.phone = orderData.phone;
+// 		this.email = orderData.email;
+// 		this.total = orderData.total;
+// 		this.events.emit('order:changed');
+// 	}
+
+// 	setContactsField(field: keyof IContactsForm, value: string) {
+// 		this[field] = value;
+
+// 		if (this.validateContacts()) {
+// 			this.events.emit('order:ready', this);
+// 		}
+// 	}
+
+// 	validateContacts() {
+// 		if (!this.email || !this.phone) {
+// 			this.formErrors = 'Необходимо заполнить контактные данные';
+// 		}
+// 		this.events.emit('formErrors:change');
+// 		return Boolean(this.formErrors);
+// 	}
+// }

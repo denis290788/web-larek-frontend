@@ -1,8 +1,15 @@
 import { Basket } from './components/Basket';
-import { Card } from './components/Card';
+import { Card, ICard } from './components/Card';
+import { ContactsForm } from './components/ContactsForm';
 import { Modal } from './components/Modal';
 import { Page } from './components/Page';
-import { BasketData, Item, Order, ProductData } from './components/appState';
+import { Success } from './components/Success';
+import {
+	BasketData,
+	CatalogChangeEvent,
+	Item,
+	ProductData,
+} from './components/appState';
 import { EventEmitter } from './components/base/events';
 import { shopAPI } from './components/shopAPI';
 import './scss/styles.scss';
@@ -17,143 +24,131 @@ events.onAll((event) => {
 	console.log(event.eventName, event.data);
 });
 
-// events.onAll(({ eventName, data }) => {
-// 	console.log(eventName, data);
-// });
-
 //Шаблоны
-const successTemplate = ensureElement<HTMLTemplateElement>('#success');
 const cardCatalogTemplate = ensureElement<HTMLTemplateElement>('#card-catalog');
 const cardPreviewTemplate = ensureElement<HTMLTemplateElement>('#card-preview');
 const cardBasketTemplate = ensureElement<HTMLTemplateElement>('#card-basket');
 const basketTemplate = ensureElement<HTMLTemplateElement>('#basket');
 const orderTemplate = ensureElement<HTMLTemplateElement>('#order');
 const contactsTemplate = ensureElement<HTMLTemplateElement>('#contacts');
+const successTemplate = ensureElement<HTMLTemplateElement>('#success');
 
-const testCatalog = [
-	{
-		id: '854cef69-976d-4c2a-a18c-2aa45046c390',
-		description: 'Если планируете решать задачи в тренажёре, берите два.',
-		image: '/5_Dots.svg',
-		title: '+1 час в сутках',
-		category: 'софт-скил',
-		price: 750,
-	},
-	{
-		id: 'c101ab44-ed99-4a54-990d-47aa2bb4e7d9',
-		description:
-			'Лизните этот леденец, чтобы мгновенно запоминать и узнавать любой цветовой код CSS.',
-		image: '/Shell.svg',
-		title: 'HEX-леденец',
-		category: 'другое',
-		price: 1450,
-	},
-	{
-		id: 'b06cde61-912f-4663-9751-09956c0eed67',
-		description: 'Будет стоять над душой и не давать прокрастинировать.',
-		image: '/Asterisk_2.svg',
-		title: 'Мамка-таймер',
-		category: 'софт-скил',
-		price: null,
-	},
-	{
-		id: '412bcf81-7e75-4e70-bdb9-d3c73c9803b7',
-		description:
-			'Откройте эти куки, чтобы узнать, какой фреймворк вы должны изучить дальше.',
-		image: '/Soft_Flower.svg',
-		title: 'Фреймворк куки судьбы',
-		category: 'дополнительное',
-		price: 2500,
-	},
-	{
-		id: '1c521d84-c48d-48fa-8cfb-9d911fa515fd',
-		description: 'Если орёт кот, нажмите кнопку.',
-		image: '/mute-cat.svg',
-		title: 'Кнопка «Замьютить кота»',
-		category: 'кнопка',
-		price: 2000,
-	},
-	{
-		id: 'f3867296-45c7-4603-bd34-29cea3a061d5',
-		description:
-			'Чтобы научиться правильно называть модификаторы, без этого не обойтись.',
-		image: 'Pill.svg',
-		title: 'БЭМ-пилюлька',
-		category: 'другое',
-		price: 1500,
-	},
-	{
-		id: '54df7dcb-1213-4b3c-ab61-92ed5f845535',
-		description: 'Измените локацию для поиска работы.',
-		image: '/Polygon.svg',
-		title: 'Портативный телепорт',
-		category: 'другое',
-		price: 100000,
-	},
-	{
-		id: '6a834fb8-350a-440c-ab55-d0e9b959b6e3',
-		description: 'Даст время для изучения React, ООП и бэкенда',
-		image: '/Butterfly.svg',
-		title: 'Микровселенная в кармане',
-		category: 'другое',
-		price: 750,
-	},
-	{
-		id: '48e86fc0-ca99-4e13-b164-b98d65928b53',
-		description: 'Очень полезный навык для фронтендера. Без шуток.',
-		image: 'Leaf.svg',
-		title: 'UI/UX-карандаш',
-		category: 'хард-скил',
-		price: 10000,
-	},
-	{
-		id: '90973ae5-285c-4b6f-a6d0-65d1d760b102',
-		description: 'Сжимайте мячик, чтобы снизить стресс от тем по бэкенду.',
-		image: '/Mithosis.svg',
-		title: 'Бэкенд-антистресс',
-		category: 'другое',
-		price: 1000,
-	},
-];
-
-const testBasket = [
-	{
-		id: '854cef69-976d-4c2a-a18c-2aa45046c390',
-		description: 'Если планируете решать задачи в тренажёре, берите два.',
-		image: '/5_Dots.svg',
-		title: '+1 час в сутках',
-		category: 'софт-скил',
-		price: 750,
-	},
-	{
-		id: 'c101ab44-ed99-4a54-990d-47aa2bb4e7d9',
-		description:
-			'Лизните этот леденец, чтобы мгновенно запоминать и узнавать любой цветовой код CSS.',
-		image: '/Shell.svg',
-		title: 'HEX-леденец',
-		category: 'другое',
-		price: 1450,
-	},
-];
+const appData = new ProductData({}, events);
+const basketData = new BasketData(events);
 
 const page = new Page(document.body, events);
 const modal = new Modal(ensureElement<HTMLElement>('#modal-container'), events);
-
 const basket = new Basket(cloneTemplate(basketTemplate), events);
+const contactsForm = new ContactsForm(cloneTemplate(contactsTemplate), events);
+const contacts = new ContactsForm(cloneTemplate(contactsTemplate), events);
 
-page.catalog = testCatalog.map((item) => {
-	const card = new Card(cloneTemplate(cardCatalogTemplate), {
-		onClick: () => events.emit('card:select', item),
-	});
-	return card.render({
-		title: item.title,
-		image: item.image,
-		category: item.category,
-		price: `${item.price} синапсов`,
+events.on<CatalogChangeEvent>('items:changed', () => {
+	page.catalog = appData.items.map((item) => {
+		const card = new Card(cloneTemplate(cardCatalogTemplate), {
+			onClick: () => events.emit('card:select', item),
+		});
+		return card.render({
+			title: item.title,
+			image: item.image,
+			category: item.category,
+			price: item.price,
+		});
 	});
 });
 
-page.counter = testCatalog.length;
+events.on('card:select', (item: Item) => {
+	appData.setPreview(item);
+});
+
+events.on('preview:changed', (item: Item) => {
+	const card = new Card(cloneTemplate(cardPreviewTemplate), {
+		onClick: () => {
+			basketData.addItem(item);
+			card.toggleBasketButton(false);
+			events.emit('basket:changed', item);
+		},
+	});
+
+	if (typeof item.price !== 'number' || basketData.items.includes(item)) {
+		card.toggleBasketButton(false);
+	} else {
+		card.toggleBasketButton(true);
+	}
+
+	modal.render({
+		content: card.render({
+			title: item.title,
+			image: item.image,
+			description: item.description,
+			category: item.category,
+			price: item.price,
+		}),
+	});
+});
+
+events.on('basket:open', () => {
+	modal.render({
+		content: createElement<HTMLElement>('div', {}, [basket.render()]),
+	});
+
+	if (basketData.getTotal()) {
+		basket.toggleOrderButton(true);
+	} else {
+		basket.toggleOrderButton(false);
+	}
+});
+
+events.on('basket:changed', () => {
+	page.counter = basketData.getItems().length;
+	let index = 1;
+	basket.items = basketData.getItems().map((item: Item) => {
+		const card = new Card(cloneTemplate(cardBasketTemplate), {
+			onClick: () => {
+				basketData.removeItem(item);
+			},
+		});
+		return card.render({
+			title: item.title,
+			price: item.price,
+			index: String(index++),
+		});
+	});
+	// basket.selected = appData.order.items;
+	basket.total = basketData.getTotal().toString();
+});
+
+events.on('modal:open', () => {
+	page.locked = true;
+});
+
+events.on('modal:close', () => {
+	page.locked = false;
+});
+
+api
+	.getProductList()
+	.then(appData.setCatalog.bind(appData))
+	.catch((err) => {
+		console.error(err);
+	});
+
+// basket.items = testBasket.map((item) => {
+// 	const card = new Card(cloneTemplate(cardBasketTemplate), {
+// 		onClick: () => {},
+// 	});
+// 	return card.render({
+// 		title: item.title,
+// 		price: `${item.price} синапсов`,
+// 	});
+// });
+// basket.total = testBasket.reduce(
+// 	(a, c) => a + testBasket.find((item) => item.id === c.id).price,
+// 	0
+// );
+
+// modal.render({
+// 	content: createElement<HTMLElement>('div', {}, [basket.render()]),
+// });
 
 // const productData = new ProductData(events);
 // const basket = new BasketData(events);
@@ -175,18 +170,6 @@ page.counter = testCatalog.length;
 // 	.catch((err) => {
 // 		console.error(err);
 // 	});
-
-// const testOrder = {
-// 	payment: 'online',
-// 	email: 'test@test.ru',
-// 	phone: '+71234567890',
-// 	address: 'Spb Vosstania 1',
-// 	total: 2200,
-// 	items: [
-// 		'854cef69-976d-4c2a-a18c-2aa45046c390',
-// 		'c101ab44-ed99-4a54-990d-47aa2bb4e7d9',
-// 	],
-// };
 
 // order.setOrderInfo(testOrder);
 

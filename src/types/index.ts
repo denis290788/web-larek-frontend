@@ -40,8 +40,13 @@ export type TItemInBasketInfo = Pick<IItem, 'title' | 'price'>;
 export interface IItemsData {
 	items: IProduct[];
 	preview: string | null;
-	// updateItem(item: IItem): void;
-	// getItem(itemId: string): IItem;
+}
+
+export interface IAppState {
+	basket: IProduct[];
+	items: IProduct[];
+	preview: string | null;
+	order: IOrder | null;
 }
 
 export interface IBasket {
@@ -63,3 +68,20 @@ export interface IOrderInfo {
 export type TOrderInfo = Pick<IOrder, 'payment' | 'address'>;
 
 export type TOrderContacts = Pick<IOrder, 'phone' | 'email'>;
+
+export interface IContactsForm {
+	email: string;
+	phone: string;
+}
+
+export interface IOrderForm {
+	payment: string;
+	address: string;
+}
+
+export interface IOrder extends IOrderForm, IContactsForm {
+	items: string[];
+	total: number;
+}
+
+export type FormErrors = Partial<Record<keyof IOrder, string>>;
