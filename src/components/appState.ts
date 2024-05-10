@@ -107,7 +107,7 @@ export class BasketData {
 		this.events = events;
 	}
 
-	getItems() {
+	getItems(): IProduct[] {
 		return this.items;
 	}
 

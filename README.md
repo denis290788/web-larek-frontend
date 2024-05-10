@@ -47,22 +47,6 @@ yarn build
 
 ## Данные и типы данных
 
-Товар
-
-```
-export interface IItem {
-    id: string;
-    description: string;
-    image: string;
-    title: string;
-    category: string;
-    price: number | null;
-    add(item: IItem): IItem;
-    remove(item: IItem): void;
-    isInBasket(id: string): boolean;
-}
-```
-
 Карточка товара (по запросу на сервер)
 
 ```
@@ -79,34 +63,46 @@ export interface IProduct {
 Модель хранения массива товаров
 
 ```
-export interface IItemsData {
-    items: IItem[];
-    preview: string | null;
+export interface IAppState {
+	basket: IProduct[];
+	items: IProduct[];
+	preview: string | null;
+	order: IOrder | null;
 }
 ```
 
 Корзина
 
 ```
-export interface IBasket {
-    basket: TItemInBasketInfo[];
-    total: number;
-    getItems(): IItem[];
-    makeOrder(items: TItemInBasketInfo[]): IOrder;
+	items: IProduct[];
+	total: number;
+	events: IEvents;
+```
+
+Условия заказа
+
+```
+export interface IOrderForm {
+	payment: string;
+	address: string;
+}
+```
+
+Контактные данные для заказа
+
+```
+export interface IContactsForm {
+	email: string;
+	phone: string;
 }
 ```
 
 Заказ
 
 ```
-export interface IOrder {
-    items: IItem[];
-    payment: 'online' | 'cash';
-    address: string;
-    phone: string;
-    email: string;
-    total: number;
-    pay(): IPayedOrder;
+export interface IOrder extends IOrderForm, IContactsForm {
+	items: string[];
+	total: number;
 }
 ```
 
@@ -117,30 +113,6 @@ export interface IPayedOrder {
     id: string;
     total: number;
 }
-```
-
-Данные карточки для отображения на главной странице
-
-```
-export type TItemInfo = Pick<IItem, 'image' | 'title' | 'category' | 'price'>;
-```
-
-Данные карточки для отображения в корзине
-
-```
-export type TItemInBasketInfo = Pick<IItem, 'title' | 'price'>;
-```
-
-Контактные данные для оформления заказа
-
-```
-export type TOrderContacts = Pick<IOrder, 'phone' | 'email'>;
-```
-
-Информация для оформления заказа
-
-```
-export type TOrderInfo = Pick<IOrder, 'payment' | 'address'>;
 ```
 
 ## Архитектура приложения
@@ -178,8 +150,8 @@ export type TOrderInfo = Pick<IOrder, 'payment' | 'address'>;
 Конструктор класса принимает инстант брокера событий\
 В полях класса хранятся следующие данные:
 
-- items: IItem[] - массив карточек переданный от сервера
-- basket: IItem[] - массив карточек в корзине
+- items: IProduct[] - массив карточек переданный от сервера
+- basket: IProduct[] - массив карточек в корзине
 - order: IOrder - в свойстве хранится объект заказа, который будет отправлен на сервер
 - preview: string | null - id товара для просмотра
 - events: IEvents - экземпляр класса `EventEmitter` для инициации событий при изменении данных.
@@ -190,27 +162,24 @@ export type TOrderInfo = Pick<IOrder, 'payment' | 'address'>;
 - getItem(itemId: string): IItem; - возвращает товар по его id
 - clearBasket(): void - метод отчистки корзины
 - getTotal(): number - возвращает общую сумму заказа
-- setCatalog(items: IItem[]) - метод создания каталога товаров переданных от сервера
+- setCatalog(items: IProduct[]) - метод создания каталога товаров переданных от сервера
 - setPreview(item: IItem) - метод формирования превью товара при событии клика по карточке товара
+
+Также методы setPaymentField, setAddressField, setContactsField, которые заполняют соответствующие поля заказа.
+
+И методы валидации данных для заказа validateOrder, validateContacts.
 
 #### Класс Item
 
 Данный класс отвечает за хранение и работу со всеми товарами, представленными в магазине (переданными по запросу от сервера).
 Поля класс:
 
-- \_id: string;
+- id: string;
 - description: string;
 - image: string;
 - title: string;
 - category: string;
 - price: number | null;
-
-Методы класса:
-
-- add(): void - добавляет товар в корзину
-- remove(): void - удаляет товар из корзины
-- setData(itemData: IItem): void - заполняет атрибуты элементов карточки товара данными.
-- isInBasket(): boolean - метод проверяет наличие данного товара в корзине
 
 #### Класс Basket
 
@@ -218,39 +187,17 @@ export type TOrderInfo = Pick<IOrder, 'payment' | 'address'>;
 Конструктор класса принимает инстант брокера событий\
 В полях класса хранятся следующие данные:
 
-- basket: TItemInBasketInfo[] - массив товаров добавленных в карзину
+- items: IProduct[] - массив товаров добавленных в карзину
 - total: number - общая стоимость всех товаров в карзине
 - events: IEvents - экземпляр класса `EventEmitter` для инициации событий при изменении данных.
 
 Методы класса:
 
-- getItems(): IItem[] - возвращает массив товаров в корзине
-- makeOrder(items: TItemInBasketInfo[]): void - добавляет в заказ массив товаров из корзины
-- а так-же сеттеры и геттеры для сохранения и получения данных из полей класса
-
-#### Класс Order
-
-Класс отвечает за хранение и логику работы с данными текущего заказа.\
-Конструктор класса принимает инстант брокера событий\
-В полях класса хранятся следующие данные:
-
-- items: IItem[] - массив товаров в заказе
-- payment: 'online' | 'cash' - тип оплаты заказа
-- address: string - адрес доставки заказа
-- phone: string - контактный телефон
-- email: string - контактная электронная почта
-- total: number - итоговая сумма заказа
-- events: IEvents - экземпляр класса `EventEmitter` для инициации событий при изменении данных.
-
-Методы класса:
-
-- getOrderInfo(order: IOrder): void - возвращает информацию о заказе
-- payOrder(order: IOrder): IPayedOrder - возвращает объект оплаченного заказа
-- checkOrderInfoValidation(data: Record<keyof TOrderInfo, string>): boolean - проверяет информацию о заказе на валидность
-- checkOrderContactsValidation(
-  data: Record<keyof TOrderContacts, string>
-  ): boolean - проверяет контактные данные в заказе на валидность
-- а так-же сеттеры и геттеры для сохранения и получения данных из полей класса
+- getItems(): IProduct[] - возвращает массив товаров в корзине
+- addItem(item: IProduct) - добавляет товар в корзину
+- removeItem(itemToRemove: IProduct) - удаляет товар из корзины
+- clearBasket() - очищает корзину
+- getTotal() - возвращает общую сумму товаров в корзине
 
 ### Классы представления
 
@@ -277,7 +224,7 @@ export type TOrderInfo = Pick<IOrder, 'payment' | 'address'>;
 - counter(value: number) - сеттер счетчика
 - catalog(items: HTMLElement[]) - сеттер каталога товаров
 
-#### Класс ItemCard
+#### Класс Card
 
 Отвечает за отображение карточки товара. Класс используется для отображения карточки товара на главной странице, в модальном окне и в корзине. В конструктор класса передается DOM элемент темплейта для формирования карточки в разных вариантах верстки. \
 Поля класса содержат элементы разметки элементов карточки. Конструктор, кроме темплейта принимает экземпляр `EventEmitter` для инициации событий. Для полей класса реализованы ссеттеры и геттеры. \
@@ -302,7 +249,7 @@ export type TOrderInfo = Pick<IOrder, 'payment' | 'address'>;
 - modal: HTMLElement - элемент модального окна
 - events: IEvents - брокер событий
 
-#### Класс BasketModal
+#### Класс Basket
 
 Реалезует модальное окно корзины, в котором отображается список карточек, общая стоимость товаров корзине и кнопка оформления заказа. При нажатии кнопки оформления заказа создается объект заказа.
 
@@ -319,60 +266,56 @@ export type TOrderInfo = Pick<IOrder, 'payment' | 'address'>;
 - items(items: HTMLElement[]) - сеттер для отображения списка карточек
 - total(total: number) - сеттер для отображения общей суммы
 
-#### Класс OrderInfoForm
+#### Класс Form
+
+Общий класс для всех форм. Предоставляет методы для отображения ошибок и управления активностью кнопки сохранения.
+
+- constructor(protected container: HTMLFormElement, protected events: IEvents) Конструктор принимает темплейт для отображения формы в модальном окне и экземпляр класса `EventEmitter` для возможности инициации событий. Добавляются слушатели на кнопку сабмита и поля ввода.
+
+Поля класса:
+
+- \_submit: HTMLButtonElement
+- \_errors: HTMLElement
+
+Методы:
+
+- onInputChange(field: keyof T, value: string) - создает эмит события изменения данных value в поле ввода field
+  Сеттеры свойств valid (отвечает за блокировку кнопки сабмита) и errors (для отображения ошибок в форме)
+
+#### Класс OrderForm
 
 Реалезует модальное окно с формой информации о заказе. При сабмите данные из формы присваиваются соответствующим полям объекта заказа.
-Предоставляет методы для отображения ошибок и управления активностью кнопки сохранения.
 
 Поля класса:
 
-- submitButton: HTMLButtonElement - Кнопка подтверждения
-- \_form: HTMLFormElement - элемент формы
-- paymentMethod - поле способа оплаты товара
-- inputAddress: HTMLInputElement - значение поля адреса
-- errors: Record<string, HTMLElement> - объект хранящий все элементы для вывода ошибок под полями формы с привязкой к атрибуту name инпутов
+- \_paymentContainer: HTMLDivElement - контейнер с выбором способа оплаты
+- \_paymentButton: HTMLButtonElement[] - кнопки способа оплаты
+- \_addressInput: HTMLInputElement - поля адреса
 
 Методы:
 
-- setValid(isValid: boolean): void - изменяет активность кнопки подтверждения
-- getInfoValues(): IOrder - возвращает объект заказа с данными из полей формы
-- setError(data: { field: string, value: string, validInformation: string }): void - принимает объект с данными для отображения или сокрытия текста ошибки под под формой
-- showInputError (errorMessage: string): void - отображает полученный текст ошибки
-- hideInputError (): void - очищает текст ошибки
-- close (): void - расширяет родительский метод дополнительно при закрытии очищая поля формы и деактивируя кнопку перехода на следующую форму заказа
+- setPayment(className: string) - спопсоб оплаты определяется по свойству name нажатой кнопки из предствленных на форме
 
-#### Класс OrderContactsForm
+Также сеттер свойства address
+
+#### Класс ContactsForm
 
 Реалезует модальное окно с формой контактных данных пользователя. При сабмите данные из формы присваиваются соответствующим полям объекта заказа.
-Предоставляет методы для отображения ошибок и управления активностью кнопки сохранения.
-
-Поля класса:
-
-- submitButton: HTMLButtonElement - Кнопка оплаты заказа
-- \_form: HTMLFormElement - элемент формы
-- inputs: NodeListOf<HTMLInputElement> - коллекция всех полей ввода формы
-- errors: Record<string, HTMLElement> - объект хранящий все элементы для вывода ошибок под полями формы с привязкой к атрибуту name инпутов
 
 Методы:
 
-- setValid(isValid: boolean): void - изменяет активность кнопки подтверждения
-- getInputValues(): IOrder - возвращает объект заказа с данными из полей формы
-- setError(data: { field: string, value: string, validInformation: string }): void - принимает объект с данными для отображения или сокрытия текста ошибки под под формой
-- showInputError (errorMessage: string): void - отображает полученный текст ошибки
-- hideInputError (): void - очищает текст ошибки
-- close (): void - расширяет родительский метод дополнительно при закрытии очищая поля формы и деактивируя кнопку оплаты заказа
+Сеттеры свойств phone и email
 
 #### Класс OrderSuccess
 
 Данный класс нужен для подтверждения успешной оплаты заказа.
-При открытии модально окна, получает данные о стоимости уже оплаченного заказа, которые нужно показать.
+При открытии модально окна, получает данные о стоимости уже оплаченного заказа.
 
 - constructor(selector: string, events: IEvents) Конструктор принимает темплейт для отображения успешности оплаты в модальном окне и экземпляр класса `EventEmitter` для возможности инициации событий.
 
 Поля класс:
 
 - total: number - поле стоимости заказа
-- close: HTMLElement - кнопка "За новыми покупками". При нажатии закрывается окно
 
 ### Слой коммуникации
 
@@ -388,17 +331,16 @@ export type TOrderInfo = Pick<IOrder, 'payment' | 'address'>;
 _Список всех событий, которые могут генерироваться в системе:_
 
 - `items:changed` - изменение массива карточек товаров
-- `item:changed` - изменение карточки (если карточка уже в корзине, то кнопка "В корзину" не доступна)
-- `item:selected` - изменение открываемой в модальном окне карточки товара
-- `item:bye` - добавить товар в корзину
+- `card:select` - клик по карточке товара на главной странице
+- `preview:changed` - изменение открываемой в модальном окне карточки товара
 - `basket:open` - открытие модального окна корзины
-- `item:delete` - удалить товар из корзины
 - `basket:changed` - изменение количества товаров в корзине и итоговой суммы
-- `basket:order` - создание заказа
-- `order:input` - изменение данных в форме с информацией о заказе
-- `order:validation` - событие, сообщающее о необходимости валидации формы данных заказа
-- `order:submit` - сохранение данных в форме с информацией о заказе
-- `contacts:input` - изменение данных в форме с контактными данными для заказа
-- `contacts:validation` - событие, сообщающее о необходимости валидации формы контактных данных
-- `contacts:submit` - сохранение данных в форме с контактными данными для заказа
-- `order-success:open` - открытие модального окна с подтверждением успешности оплаты
+- `order:open` - окрывается первая форма заказа
+- `order.payment:change` - меняется способ оплаты
+- `order.address:change` - меняется адрес
+- `orderFormErrors:change` - отображаются ошибки формы и блокируется кнопка оформления
+- `order:submit` - открывается форма контактных данных
+- `contacts.phone:change` - меняется телефон
+- `contacts.email:change` - меняется электронная почта
+- `contactsFormErrors:change` - отображаются ошибки формы и блокируется кнопка оформления
+- `contacts:submit` - отправляется запрос на сервер с заказом, открывается модальное окно с подтверждение оплаты
