@@ -2,12 +2,10 @@ import {
 	FormErrors,
 	IAppState,
 	IContactsForm,
-	IItem,
-	IItemsData,
 	IOrder,
 	IProduct,
 } from '../types';
-import { EventEmitter, IEvents } from './base/events';
+import { IEvents } from './base/events';
 
 abstract class Model<T> {
 	constructor(data: Partial<T>, protected events: IEvents) {
@@ -56,15 +54,35 @@ export class ProductData extends Model<IAppState> {
 		this.emitChanges('preview:changed', item);
 	}
 
-	setContactsField(field: keyof IContactsForm, value: string) {
-		this.order[field] = value;
-
-		if (this.validateContactsForm()) {
-			this.events.emit('order:ready', this.order);
-		}
+	setPaymentField(value: string) {
+		this.order.payment = value;
+		this.validateOrder();
 	}
 
-	validateContactsForm() {
+	setAddressField(value: string) {
+		this.order.address = value;
+		this.validateOrder();
+	}
+
+	setContactsField(field: keyof IContactsForm, value: string) {
+		this.order[field] = value;
+		this.validateContacts();
+	}
+
+	validateOrder() {
+		const errors: typeof this.formErrors = {};
+		if (!this.order.payment) {
+			errors.payment = 'Необходимо указать способ оплаты';
+		}
+		if (!this.order.address) {
+			errors.address = 'Необходимо указать адрес';
+		}
+		this.formErrors = errors;
+		this.events.emit('orderFormErrors:change', this.formErrors);
+		return Object.keys(errors).length === 0;
+	}
+
+	validateContacts() {
 		const errors: typeof this.formErrors = {};
 		if (!this.order.email) {
 			errors.email = 'Необходимо указать email';
@@ -73,7 +91,7 @@ export class ProductData extends Model<IAppState> {
 			errors.phone = 'Необходимо указать телефон';
 		}
 		this.formErrors = errors;
-		this.events.emit('formErrors:change', this.formErrors);
+		this.events.emit('contactsFormErrors:change', this.formErrors);
 		return Object.keys(errors).length === 0;
 	}
 }
@@ -112,69 +130,3 @@ export class BasketData {
 		);
 	}
 }
-// 	makeOrder() {
-// 		const order = new Order(this.events);
-// 		order.setOrderInfo({
-// 			items: this.items.map((item) => item.id),
-// 			payment: '',
-// 			address: '',
-// 			phone: '',
-// 			email: '',
-// 			total: this.getTotal(),
-// 		});
-// 		this.events.emit('basket:order');
-// 		return order;
-// 	}
-// }
-
-// export class Order implements IOrder {
-// 	items: string[];
-// 	payment: string;
-// 	address: string;
-// 	phone: string;
-// 	email: string;
-// 	total: number;
-// 	events: IEvents;
-// 	formErrors: string;
-
-// 	constructor(events: IEvents) {
-// 		this.events = events;
-// 	}
-
-// 	getOrderInfo() {
-// 		return {
-// 			items: this.items,
-// 			payment: this.payment,
-// 			address: this.address,
-// 			phone: this.phone,
-// 			email: this.email,
-// 			total: this.total,
-// 		};
-// 	}
-
-// 	setOrderInfo(orderData: IOrder) {
-// 		this.items = orderData.items;
-// 		this.payment = orderData.payment;
-// 		this.address = orderData.address;
-// 		this.phone = orderData.phone;
-// 		this.email = orderData.email;
-// 		this.total = orderData.total;
-// 		this.events.emit('order:changed');
-// 	}
-
-// 	setContactsField(field: keyof IContactsForm, value: string) {
-// 		this[field] = value;
-
-// 		if (this.validateContacts()) {
-// 			this.events.emit('order:ready', this);
-// 		}
-// 	}
-
-// 	validateContacts() {
-// 		if (!this.email || !this.phone) {
-// 			this.formErrors = 'Необходимо заполнить контактные данные';
-// 		}
-// 		this.events.emit('formErrors:change');
-// 		return Boolean(this.formErrors);
-// 	}
-// }

@@ -1,6 +1,5 @@
 import { ensureElement } from '../utils/utils';
 import { Component } from './base/Component';
-import { IEvents } from './base/events';
 
 interface ICardActions {
 	onClick: (event: MouseEvent) => void;

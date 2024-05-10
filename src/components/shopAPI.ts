@@ -3,7 +3,6 @@ import { Api, ApiListResponse } from './base/api';
 
 export interface IShopAPI {
 	getProductList: () => Promise<IProduct[]>;
-	getProductItem: (id: string) => Promise<IProduct>;
 	orderProducts: (order: IOrder) => Promise<IPayedOrder>;
 }
 
@@ -23,13 +22,6 @@ export class shopAPI extends Api implements IShopAPI {
 					image: this.cdn + item.image,
 				}))
 		);
-	}
-
-	getProductItem(id: string): Promise<IProduct> {
-		return this.get<IProduct>(`/product/${id}`).then((item: IProduct) => ({
-			...item,
-			image: this.cdn + item.image,
-		}));
 	}
 
 	orderProducts(order: IOrder): Promise<IPayedOrder> {
