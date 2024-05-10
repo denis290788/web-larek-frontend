@@ -30,11 +30,6 @@ export interface IPayedOrder {
 	total: number;
 }
 
-// export interface IItemsData {
-// 	items: IProduct[];
-// 	preview: string | null;
-// }
-
 export interface IAppState {
 	basket: IProduct[];
 	items: IProduct[];
