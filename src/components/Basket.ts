@@ -7,7 +7,7 @@ interface IBasketView {
 	total: string;
 }
 
-export class Basket extends Component<IBasketView> {
+export class BasketModal extends Component<IBasketView> {
 	protected _list: HTMLElement;
 	protected _total: HTMLElement;
 	protected _button: HTMLButtonElement;
@@ -25,7 +25,7 @@ export class Basket extends Component<IBasketView> {
 
 		if (this._button) {
 			this._button.addEventListener('click', () => {
-				events.emit('order:open');
+				events.emit('basket:order');
 			});
 		}
 

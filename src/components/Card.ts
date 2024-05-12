@@ -22,7 +22,7 @@ const categoryColor: { [key: string]: string } = {
 	'хард-скил': 'card__category_hard',
 };
 
-export class Card extends Component<ICard> {
+export class ItemCard extends Component<ICard> {
 	protected _title: HTMLElement;
 	protected _price: HTMLElement;
 	protected _image?: HTMLImageElement;

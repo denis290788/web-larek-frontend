@@ -1,9 +1,10 @@
 import {
 	FormErrors,
-	IAppState,
+	IItemsData,
 	IContactsForm,
 	IOrder,
 	IProduct,
+	IBasket,
 } from '../types';
 import { IEvents } from './base/events';
 
@@ -30,7 +31,7 @@ export class Item extends Model<IProduct> {
 	price: number | null;
 }
 
-export class ProductData extends Model<IAppState> {
+export class AppState extends Model<IItemsData> {
 	basket: IProduct[];
 	items: IProduct[];
 	preview: string | null;
@@ -96,15 +97,15 @@ export class ProductData extends Model<IAppState> {
 	}
 }
 
-export class BasketData {
+export class Basket extends Model<IBasket> {
 	items: IProduct[];
 	total: number;
-	events: IEvents;
+	// events: IEvents;
 
 	constructor(events: IEvents) {
+		super({}, events);
 		this.items = [];
 		this.total = 0;
-		this.events = events;
 	}
 
 	getItems(): IProduct[] {

@@ -9,7 +9,7 @@ interface ISuccessActions {
 	onClick: () => void;
 }
 
-export class Success extends Component<ISuccess> {
+export class OrderSuccess extends Component<ISuccess> {
 	protected _total: HTMLElement;
 	protected _close: HTMLButtonElement;
 

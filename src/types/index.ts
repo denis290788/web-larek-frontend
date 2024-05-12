@@ -30,11 +30,16 @@ export interface IPayedOrder {
 	total: number;
 }
 
-export interface IAppState {
+export interface IItemsData {
 	basket: IProduct[];
 	items: IProduct[];
 	preview: string | null;
 	order: IOrder | null;
+}
+
+export interface IBasket {
+	items: IProduct[];
+	total: number;
 }
 
 export interface IContactsForm {

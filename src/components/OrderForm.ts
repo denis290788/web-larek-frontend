@@ -3,7 +3,7 @@ import { ensureElement } from '../utils/utils';
 import { Form } from './Form';
 import { IEvents } from './base/events';
 
-export class OrderForm extends Form<IOrderForm> {
+export class OrderInfoForm extends Form<IOrderForm> {
 	protected _paymentContainer: HTMLDivElement;
 	protected _paymentButton: HTMLButtonElement[];
 	protected _addressInput: HTMLInputElement;

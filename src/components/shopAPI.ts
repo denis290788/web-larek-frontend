@@ -6,7 +6,7 @@ export interface IShopAPI {
 	orderProducts: (order: IOrder) => Promise<IPayedOrder>;
 }
 
-export class shopAPI extends Api implements IShopAPI {
+export class AppAPI extends Api implements IShopAPI {
 	readonly cdn: string;
 
 	constructor(cdn: string, baseUrl: string, options?: RequestInit) {
