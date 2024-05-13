@@ -15,9 +15,11 @@ export class OrderInfoForm extends Form<IOrderForm> {
 			'.order__buttons',
 			this.container
 		);
+
 		this._paymentButton = Array.from(
 			this._paymentContainer.querySelectorAll('.button_alt')
 		);
+
 		this._addressInput = this.container.elements.namedItem(
 			'address'
 		) as HTMLInputElement;

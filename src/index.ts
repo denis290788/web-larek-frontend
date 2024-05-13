@@ -121,7 +121,9 @@ events.on('basket:changed', () => {
 });
 
 events.on('basket:order', () => {
+	orderForm.setPayment('');
 	appData.setPaymentField('');
+	appData.setAddressField('');
 	appData.order.items = basketData.getItems().map((item) => item.id);
 	appData.order.total = basketData.getTotal();
 	modal.render({
@@ -151,6 +153,8 @@ events.on('orderFormErrors:change', (errors: Partial<IOrderForm>) => {
 });
 
 events.on('order:submit', () => {
+	appData.setContactsField('phone', '');
+	appData.setContactsField('email', '');
 	modal.render({
 		content: contactsForm.render({
 			phone: '',
@@ -183,20 +187,20 @@ events.on('contacts:submit', () => {
 			const success = new OrderSuccess(cloneTemplate(successTemplate), {
 				onClick: () => {
 					modal.close();
-					basketData.clearBasket();
-					events.emit('basket:changed');
 				},
 			});
 
 			modal.render({
 				content: success.render({
-					total: basketData.getTotal(),
+					total: appData.order.total,
 				}),
 			});
 		})
 		.catch((err) => {
 			console.error(err);
 		});
+	basketData.clearBasket();
+	events.emit('basket:changed');
 });
 
 events.on('modal:open', () => {

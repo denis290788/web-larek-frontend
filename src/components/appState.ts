@@ -100,7 +100,6 @@ export class AppState extends Model<IItemsData> {
 export class Basket extends Model<IBasket> {
 	items: IProduct[];
 	total: number;
-	// events: IEvents;
 
 	constructor(events: IEvents) {
 		super({}, events);
