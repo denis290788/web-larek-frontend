@@ -45,6 +45,11 @@ const contactsForm = new OrderContactsForm(
 	cloneTemplate(contactsTemplate),
 	events
 );
+const success = new OrderSuccess(cloneTemplate(successTemplate), {
+	onClick: () => {
+		modal.close();
+	},
+});
 
 events.on<CatalogChangeEvent>('items:changed', () => {
 	page.catalog = appData.items.map((item) => {
@@ -95,11 +100,7 @@ events.on('basket:open', () => {
 		content: createElement<HTMLElement>('div', {}, [basketModal.render()]),
 	});
 
-	if (basketData.getTotal()) {
-		basketModal.toggleOrderButton(true);
-	} else {
-		basketModal.toggleOrderButton(false);
-	}
+	basketModal.toggleOrderButton(Boolean(basketData.getTotal()));
 });
 
 events.on('basket:changed', () => {
@@ -117,6 +118,7 @@ events.on('basket:changed', () => {
 			index: String(index++),
 		});
 	});
+	basketModal.toggleOrderButton(Boolean(basketData.getItems().length));
 	basketModal.total = basketData.getTotal().toString();
 });
 
@@ -184,23 +186,16 @@ events.on('contacts:submit', () => {
 	api
 		.orderProducts(appData.order)
 		.then((result) => {
-			const success = new OrderSuccess(cloneTemplate(successTemplate), {
-				onClick: () => {
-					modal.close();
-				},
-			});
-
 			modal.render({
 				content: success.render({
 					total: appData.order.total,
 				}),
 			});
+
+			basketData.clearBasket();
+			events.emit('basket:changed');
 		})
-		.catch((err) => {
-			console.error(err);
-		});
-	basketData.clearBasket();
-	events.emit('basket:changed');
+		.catch(console.error);
 });
 
 events.on('modal:open', () => {
@@ -214,6 +209,4 @@ events.on('modal:close', () => {
 api
 	.getProductList()
 	.then(appData.setCatalog.bind(appData))
-	.catch((err) => {
-		console.error(err);
-	});
+	.catch(console.error);

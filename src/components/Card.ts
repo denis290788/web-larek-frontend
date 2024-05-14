@@ -14,13 +14,13 @@ export interface ICard {
 	index?: string;
 }
 
-const categoryColor: { [key: string]: string } = {
-	'софт-скил': 'card__category_soft',
-	другое: 'card__category_other',
-	дополнительное: 'card__category_additional',
-	кнопка: 'card__category_button',
-	'хард-скил': 'card__category_hard',
-};
+enum CategoryColor {
+	'софт-скил' = 'card__category_soft',
+	'другое' = 'card__category_other',
+	'дополнительное' = 'card__category_additional',
+	'кнопка' = 'card__category_button',
+	'хард-скил' = 'card__category_hard',
+}
 
 export class ItemCard extends Component<ICard> {
 	protected _title: HTMLElement;
@@ -52,11 +52,7 @@ export class ItemCard extends Component<ICard> {
 	}
 
 	toggleBasketButton(value: boolean) {
-		if (value) {
-			this.setDisabled(this._button, false);
-		} else {
-			this.setDisabled(this._button, true);
-		}
+		this.setDisabled(this._button, !value);
 	}
 
 	set id(value: string) {
@@ -96,9 +92,11 @@ export class ItemCard extends Component<ICard> {
 	}
 
 	set category(value: string) {
-		this._category.classList.add(categoryColor[value]);
+		const categoryClass = CategoryColor[value as keyof typeof CategoryColor];
+		this.toggleClass(this._category, categoryClass, true);
 		this.setText(this._category, value);
 	}
+
 	get category(): string {
 		return this._category.textContent || '';
 	}

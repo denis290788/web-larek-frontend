@@ -39,11 +39,7 @@ export class BasketModal extends Component<IBasketView> {
 	}
 
 	toggleOrderButton(value: boolean) {
-		if (value) {
-			this.setDisabled(this._button, false);
-		} else {
-			this.setDisabled(this._button, true);
-		}
+		this.setDisabled(this._button, !value);
 	}
 
 	set items(items: HTMLElement[]) {
