@@ -6,8 +6,8 @@ import {
 	IProduct,
 	IBasket,
 } from '../types';
+import { IEvents } from './base/Events';
 import { Model } from './base/Model';
-import { IEvents } from './base/events';
 
 export type CatalogChangeEvent = {
 	catalog: Item[];

@@ -10,13 +10,14 @@ import {
 	CatalogChangeEvent,
 	Item,
 	AppState,
-} from './components/appState';
-import { EventEmitter } from './components/base/events';
-import { AppAPI } from './components/shopAPI';
+} from './components/AppState';
+
+import { AppAPI } from './components/ShopAPI';
 import './scss/styles.scss';
 import { IContactsForm, IOrderForm } from './types';
 import { API_URL, CDN_URL } from './utils/constants';
 import { cloneTemplate, createElement, ensureElement } from './utils/utils';
+import { EventEmitter } from './components/base/Events';
 
 const events = new EventEmitter();
 const api = new AppAPI(CDN_URL, API_URL);

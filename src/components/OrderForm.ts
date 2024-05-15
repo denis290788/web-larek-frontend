@@ -1,7 +1,7 @@
 import { IOrderForm } from '../types';
 import { ensureElement } from '../utils/utils';
 import { Form } from './Form';
-import { IEvents } from './base/events';
+import { IEvents } from './base/Events';
 
 export class OrderInfoForm extends Form<IOrderForm> {
 	protected _paymentContainer: HTMLDivElement;
