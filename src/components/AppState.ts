@@ -76,10 +76,10 @@ export class AppState extends Model<IItemsData> {
 
 	validateContacts() {
 		const errors: typeof this.formErrors = {};
-		if (!this.order.email) {
+		if (!/^\S+@\S+\.\S+$/.test(this.order.email)) {
 			errors.email = 'Необходимо указать email';
 		}
-		if (!this.order.phone) {
+		if (!/^\d{11}$/.test(this.order.phone)) {
 			errors.phone = 'Необходимо указать телефон';
 		}
 		this.formErrors = errors;

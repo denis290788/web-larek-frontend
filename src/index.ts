@@ -74,15 +74,17 @@ events.on('preview:changed', (item: Item) => {
 	const card = new ItemCard(cloneTemplate(cardPreviewTemplate), {
 		onClick: () => {
 			basketData.addItem(item);
-			card.toggleBasketButton(false);
+			card.toggleBasketButton(false, 'Уже в корзине');
 			events.emit('basket:changed', item);
 		},
 	});
 
-	if (typeof item.price !== 'number' || basketData.items.includes(item)) {
-		card.toggleBasketButton(false);
+	if (basketData.items.includes(item)) {
+		card.toggleBasketButton(false, 'Уже в корзине');
+	} else if (typeof item.price !== 'number') {
+		card.toggleBasketButton(false, 'В корзину');
 	} else {
-		card.toggleBasketButton(true);
+		card.toggleBasketButton(true, 'В корзину');
 	}
 
 	modal.render({

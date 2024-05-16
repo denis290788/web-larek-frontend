@@ -51,8 +51,9 @@ export class ItemCard extends Component<ICard> {
 		}
 	}
 
-	toggleBasketButton(value: boolean) {
+	toggleBasketButton(value: boolean, text: string) {
 		this.setDisabled(this._button, !value);
+		this.setText(this._button, text);
 	}
 
 	set id(value: string) {

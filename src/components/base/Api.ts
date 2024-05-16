@@ -27,18 +27,22 @@ export class Api {
 				.then((data) => Promise.reject(data.error ?? response.statusText));
 	}
 
+	_request<T>(uri: string, options: object) {
+		return fetch(this.baseUrl + uri, options).then(this.handleResponse<T>);
+	}
+
 	get<T>(uri: string) {
-		return fetch(this.baseUrl + uri, {
+		return this._request<T>(uri, {
 			...this.options,
 			method: 'GET',
-		}).then(this.handleResponse<T>);
+		});
 	}
 
 	post<T>(uri: string, data: object, method: ApiPostMethods = 'POST') {
-		return fetch(this.baseUrl + uri, {
+		return this._request<T>(uri, {
 			...this.options,
 			method,
 			body: JSON.stringify(data),
-		}).then(this.handleResponse<T>);
+		});
 	}
 }
