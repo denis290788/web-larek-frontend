@@ -1,5 +1,7 @@
 # Проектная работа "Веб-ларек"
 
+https://denis290788.github.io/web-larek-frontend/
+
 Стек: HTML, SCSS, TS, Webpack
 
 Структура проекта:
